@@ -1,0 +1,33 @@
+# In order to enable ssh to the containers, I had to enable the ip_tables kernel module:
+sudo modprobe ip_tables
+sudo echo 'ip_tables' >> /etc/modules
+
+
+# In order to ssh to sros I had to enable SHA1
+update-crypto-policies --set DEFAULT:SHA1
+
+# Also, added this to my .ssh/config
+# ~/.ssh/config 
+-------
+Host clab-srv6-demo-* 
+    HostKeyAlgorithms=+ssh-rsa
+    PubkeyAcceptedAlgorithms=+ssh-rsa
+
+
+# I had to add this file in order to have enough resources for kind to run 4 clusters
+# /etc/sysctl.d/90-override.conf 
+-------
+# Added by Drew Mar-8-2023
+# This was due to inotify settings being too small 
+# for kind clusters - see the following URL:
+#
+# https://kind.sigs.k8s.io/docs/user/known-issues/#pod-errors-due-to-too-many-open-files
+#
+fs.inotify.max_user_watches = 524288
+fs.inotify.max_user_instances = 512
+
+
+# I had to install kernel module extra to enable netem for adding delay to my bridge
+# (by default the kernel module sch_netem was not avail)
+sudo dnf install -y kernel-modules-extra
+sudo modprobe sch_netem
